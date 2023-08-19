@@ -15,18 +15,29 @@ const configTesseract = {
 
   module.exports = {
     recognizeStore: async (image) => {
-        const text = await tesseract.recognize(image, configTesseract)
-        const lines = text.split('\n').map(x => x.trim()).filter(x => x.length > 0)
+        try {
 
-        const store = detectStore(lines)
+            const text = await tesseract.recognize(image, configTesseract)
+            const lines = text.split('\n').map(x => x.trim()).filter(x => x.length > 0)
 
-        const qrResults = await getQRParser(image)
+            const store = detectStore(lines)
 
-        return {
-            store,
-            lines,
-            text,
-            qrResults
+            const qrResults = await getQRParser(image).catch(err => {console.log('Error QR:', err); return null})
+
+            return {
+                store,
+                lines,
+                text,
+                qrResults
+            }
+        } catch (error) {
+            console.log('Error recognize:', error)
+            return {
+                store: null,
+                lines: [],
+                text: '',
+                qrResults: null
+            }
         }
     }
 }
@@ -35,9 +46,9 @@ const configTesseract = {
 const detectStore = (lines) => {
     const stores = ['BK', 'MC', 'TB']
     if ((lines[0] || '').toLowerCase().includes('su pedido')) return stores[0]
-    if ((lines[0] || '').toLowerCase().includes('taco bell')) return stores[2]
+    if (lines.filter(x => x.toLowerCase().replaceAll(' ', '').match('tacobell')).length > 0) return stores[2]
 
-    if (lines.filter(x => x.toLowerCase().replaceAll(' ', '').match('mcdonald')).length > 0) return stores[1]
+    if (lines.filter(x => x.toLowerCase().replaceAll(' ', '').match('donal')).length > 0) return stores[1]
     return null
 }
 

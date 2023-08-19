@@ -1,14 +1,11 @@
 const { Telegraf, Context } = require('telegraf')
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 require('dotenv').config();
-const os = require("os");
 
 const botToken = process.env.BOT_TOKEN;
 
 const bot = new Telegraf(botToken)
-const savePath = path.join(os.tmpdir(), 'fotos');
 
 module.exports = {
     init: async function () {
@@ -24,7 +21,7 @@ module.exports = {
             auth.status = 'ok'
           });
         }
-
+        // Cargamos los comandos
         const commands = fs.readdirSync(path.join(__dirname, './telegram/commands'));
         const commandsList = [];
         for (const command of commands) {
@@ -35,12 +32,32 @@ module.exports = {
 
           if (commandModule.command) {
             bot.command(commandModule.name, (ctx) => {
-              console.log(commandModule.name, ctx.from.id)
+              console.log('COMANDO', commandModule.name, ctx.from.id)
               ctx.authModule = auth;
+              ctx.tokens = { botToken }
               return auth.checkPermissions(ctx, commandModule.command)
             });
           }
           commandsList.push({ command: commandModule.name, description: commandModule.description });
+        }
+
+        // Cargamos los eventos
+        const events = fs.readdirSync(path.join(__dirname, './telegram/events'));
+        console.log('EVENTOS', events)
+        for (const event of events) {
+          const eventModule = require(`./telegram/events/${event}`);
+          if (eventModule.init) {
+            await eventModule.init(bot);
+          }
+
+          if (eventModule.command) {
+            bot.on(eventModule.name, (ctx) => {
+              console.log('EVENTO', eventModule.name, ctx.from.id)
+              ctx.authModule = auth;
+              ctx.tokens = { botToken }
+              return auth.checkPermissions(ctx, eventModule.command)
+            });
+          }
         }
 
         bot.telegram.setMyCommands(commandsList);
