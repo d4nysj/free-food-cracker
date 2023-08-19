@@ -9,20 +9,15 @@ const botToken = process.env.BOT_TOKEN;
 
 const bot = new Telegraf(botToken)
 const savePath = path.join(os.tmpdir(), 'fotos');
-console.log(savePath)
-
-const authorizedUsers = (process.env.AUTORIZED || '').split(",").map(x=> parseInt(x));
-console.log(authorizedUsers)
 
 module.exports = {
     init: async function () {
         // Definimos los comandos disponibles para el bot
         const auth = await require('./telegram/auth').init();
-        console.log(auth)
 
         if (auth.status === 'init') {
-          bot.command('makemesudo', (ctx) => {
-            if (auth.status !== 'init') return ctx.reply('Lo siento, este comando ya no está disponible.');
+          bot.command('start', (ctx) => {
+            if (auth.status !== 'init') return ctx.reply('Bienvenido!.');
 
             auth.addSudoUser(ctx.from.id);
             ctx.reply('¡Ahora eres un usuario sudo!');
@@ -31,12 +26,24 @@ module.exports = {
         }
 
         const commands = fs.readdirSync(path.join(__dirname, './telegram/commands'));
+        const commandsList = [];
+        for (const command of commands) {
+          const commandModule = require(`./telegram/commands/${command}`);
+          if (commandModule.init) {
+            await commandModule.init(bot);
+          }
 
-        /*const commands = [
-            { command: 'subeticket', description: 'Enviar Ticket' },
-            { command: 'ayuda', description: 'Obtener ayuda' }
-        ];
-        bot.telegram.setMyCommands(commands);*/
+          if (commandModule.command) {
+            bot.command(commandModule.name, (ctx) => {
+              console.log(commandModule.name, ctx.from.id)
+              ctx.authModule = auth;
+              return auth.checkPermissions(ctx, commandModule.command)
+            });
+          }
+          commandsList.push({ command: commandModule.name, description: commandModule.description });
+        }
+
+        bot.telegram.setMyCommands(commandsList);
 
         return bot.launch().then(() => {
           console.log('Bot iniciado');

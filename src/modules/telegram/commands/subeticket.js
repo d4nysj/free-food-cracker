@@ -2,6 +2,7 @@ module.exports = {
     name: 'subeticket',
     description: 'Enviar Ticket',
     command: async function (ctx) {
-        ctx.reply('¡Hola! ¿En qué puedo ayudarte?');
+        console.log('isAdmin', ctx.state.isAdmin);
+        ctx.reply('¡Hola! ¿En qué puedo ayudarte? jj');
     },
 }

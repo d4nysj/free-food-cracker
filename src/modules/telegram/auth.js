@@ -33,6 +33,8 @@ async function getUsers () {
             users
         }
     } catch (error) {
+        _writeCredentials(sudoUsersPath, []);
+        _writeCredentials(usersPath, []);
         return {
             status: 'error',
             sudoUsers: [],
@@ -69,7 +71,7 @@ async function removeUser (id) {
 
 async function _writeCredentials (fileDir, content) {
     if (!fs.existsSync(fileDir)) {
-        fs.mkdirSync(path.resolve(fileDir), { recursive: true });
+        fs.mkdirSync(path.dirname(fileDir), { recursive: true });
     }
     fs.writeFileSync(fileDir, JSON.stringify(content));
 }
