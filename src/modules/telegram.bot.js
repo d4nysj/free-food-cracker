@@ -5,8 +5,6 @@ const axios = require('axios');
 require('dotenv').config();
 const os = require("os");
 
-
-
 const botToken = process.env.BOT_TOKEN;
 
 const bot = new Telegraf(botToken)
@@ -16,44 +14,70 @@ console.log(savePath)
 const authorizedUsers = (process.env.AUTORIZED || '').split(",").map(x=> parseInt(x));
 console.log(authorizedUsers)
 
-function esUsuarioAutorizado(userId) {
-    return authorizedUsers.includes(userId);
-  }
+module.exports = {
+    init: async function () {
+        // Definimos los comandos disponibles para el bot
+        const auth = await require('./telegram/auth').init();
+        console.log(auth)
 
+        if (auth.status === 'init') {
+          bot.command('makemesudo', (ctx) => {
+            if (auth.status !== 'init') return ctx.reply('Lo siento, este comando ya no está disponible.');
 
-// Verificar y crear el directorio si no existe
-if (!fs.existsSync(savePath)) {
-  fs.mkdirSync(savePath);
+            auth.addSudoUser(ctx.from.id);
+            ctx.reply('¡Ahora eres un usuario sudo!');
+            auth.status = 'ok'
+          });
+        }
+
+        const commands = fs.readdirSync(path.join(__dirname, './telegram/commands'));
+
+        /*const commands = [
+            { command: 'subeticket', description: 'Enviar Ticket' },
+            { command: 'ayuda', description: 'Obtener ayuda' }
+        ];
+        bot.telegram.setMyCommands(commands);*/
+
+        return bot.launch().then(() => {
+          console.log('Bot iniciado');
+        }).catch(err => console.error(err));
+        
+    }
 }
 
 
-const commands = [
-    { command: 'subeticket', description: 'Enviar Ticket' },
-    { command: 'ayuda', description: 'Obtener ayuda' },
-    // Agrega más comandos aquí
-  ];
-  
-  bot.telegram.setMyCommands(commands);
+/*function esUsuarioAutorizado(userId) {
+    return authorizedUsers.includes(userId);
+  }*/
+
+
+// Verificar y crear el directorio si no existe
+/*if (!fs.existsSync(savePath)) {
+  fs.mkdirSync(savePath);
+}
+*/
 
 
 
-bot .start((ctx) => {
-ctx.reply("Hola¡ Soy un bot tan inutil que no se hacer nada");
-})
 
-//bot .help((ctx) => {
- //   ctx.reply("Yo tambien necesito ayuda sabs ...");
-  //  })
+// Mensaje de bienvenida
+/*bot.start((ctx) => {
+    ctx.reply("Hola¡ Soy un bot tan inutil que no se hacer nada");
+})*/
 
-bot.command("subeticket", (ctx) => {
+/*bot.help((ctx) => {
+    ctx.reply("Yo tambien necesito ayuda sabs ...");
+})*/
+
+/*bot.command("subeticket", (ctx) => {
     if (esUsuarioAutorizado(ctx.from.id)) {
         ctx.reply('Envie Una captura del ticket Mamahuevo');
-      } else {
+    } else {
         ctx.reply('Lo siento, no tienes acceso autorizado para interactuar con este bot.');
-      }
+    }
       
   
-})
+})*/
 
 
 //bot.hears(['Encuesta' , 'encuesta'], ctx => {
@@ -65,7 +89,7 @@ bot.command("subeticket", (ctx) => {
 //})
 
 
-bot.on('photo', async (ctx) => {
+/*bot.on('photo', async (ctx) => {
     
     const photos = ctx.message.photo;
 
@@ -97,9 +121,9 @@ bot.on('photo', async (ctx) => {
         
     }
   });
-
+*/
   
-  bot.command('subeticket', (ctx) => {
+  /*bot.command('subeticket', (ctx) => {
     ctx.reply('¡Hola! ¿En qué puedo ayudarte?');
   });
   
@@ -112,10 +136,8 @@ bot.on('photo', async (ctx) => {
   bot.command(['Soy', 'soy','Quiensoy','QuienSoy'], (ctx) => {
     ctx.reply('Hola¡, Eres el Usuario: ' + ctx.from.username + " - Con ID: ");
     ctx.reply('' + ctx.from.id);
-  });
+  });*/
 
 
 
-  bot.launch().then(() => {
-    console.log('Bot iniciado');
-  }).catch(err => console.error(err));
+  

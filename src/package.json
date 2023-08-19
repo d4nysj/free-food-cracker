@@ -11,12 +11,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.4.0",
     "dotenv": "^16.3.1",
     "jimp": "^0.22.10",
     "node-tesseract-ocr": "^2.2.1",
     "nodemon": "^3.0.1",
     "openai": "^4.0.0",
     "puppeteer": "^21.1.0",
-    "qrcode-reader": "^1.0.4"
+    "qrcode-reader": "^1.0.4",
+    "telegraf": "^4.12.2"
   }
 }
