@@ -40,7 +40,11 @@ module.exports = {
                 return ctx.reply(`No se pudo reconocer el ticket de Taco Bell \n\n ${text}`);
             }
 
-            const { finalCode, photoPath } = await getCodeTacoBell('TBES124')
+
+            const code = lines.filter(x => x.toLowerCase().replaceAll(' ', '').match('tbes'))[0].split(" ").reverse()[0]
+            console.log('code', code)
+
+            const { finalCode, photoPath } = await getCodeTacoBell(code)
             console.log('finalCode', finalCode)
             return ctx.replyWithPhoto({ source: photoPath }, { caption: `Aqui tienes tu codigo: ${finalCode}` });
         }
